@@ -15,7 +15,7 @@ async function profileText(ctx: Ctx): Promise<string> {
   const latest = payouts[0];
   const wallet = user.walletAddress ? "Wallet saved" : "No wallet yet";
   const payoutLine = latest ? `Latest withdrawal: ${sats(latest.amount)} · ${latest.status}` : "No withdrawals yet — earn rewards, then tap Withdraw!";
-  return `You’ve earned ${user.score} quiz rewards.\n${wallet}.\n${payoutLine}`;
+  return `You’ve earned ${user.score} quiz rewards.\n${wallet}.\n${payoutLine}\nAdsGram rewards are tracked via secure server callbacks.`;
 }
 
 async function showProfile(ctx: Ctx, edit: boolean): Promise<void> {
