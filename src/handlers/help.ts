@@ -9,8 +9,8 @@ import { inlineButton, inlineKeyboard } from "../toolkit/index.js";
 const composer = new Composer<Ctx>();
 
 const HELP =
-  "ℹ️ Tap /start to open the menu, then pick what you want from the buttons.\n\n" +
-  "Everything in this bot is reachable by tapping — you don't need to remember any commands.";
+  "Pick Play, choose an answer, and earn 100 sats for every correct one.\n\n" +
+  "Your rewards stay in My progress. Add a BTC wallet when you’re ready to withdraw.";
 
 const backToMenu = inlineKeyboard([[inlineButton("⬅️ Back to menu", "menu:main")]]);
 

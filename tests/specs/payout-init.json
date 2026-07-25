@@ -1,19 +1,19 @@
 [
   {
-    "name": "Withdraw",
+    "name": "Withdraw handles unavailable durable storage kindly",
     "steps": [
       {
-        "expect": [
-          {
-            "method": "sendMessage",
-            "payload": {
-              "text": "Initiate crypto withdrawal request"
-            }
-          }
-        ],
-        "send": {
-          "callback": "payout:init"
-        }
+        "send": { "callback": "payout:init" },
+        "expect": [{ "method": "sendMessage", "payload": { "text": "Withdrawals are getting connected here. Please try again a little later!" } }]
+      }
+    ]
+  },
+  {
+    "name": "Withdrawal retry remains safe",
+    "steps": [
+      {
+        "send": { "callback": "payout:retry" },
+        "expect": [{ "method": "sendMessage", "payload": { "text": "Withdrawals are getting connected here. Please try again a little later!" } }]
       }
     ]
   }

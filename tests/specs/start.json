@@ -7,7 +7,7 @@
         "expect": [
           {
             "method": "sendMessage",
-            "payload": { "text": "👋 Welcome! Tap a button below to get started." }
+            "payload": { "text": "Ready to turn quick answers into tiny rewards? Pick a button and let’s play!" }
           }
         ]
       }

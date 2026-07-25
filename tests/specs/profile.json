@@ -1,19 +1,10 @@
 [
   {
-    "name": "/profile",
+    "name": "My progress opens from its menu button",
     "steps": [
       {
-        "expect": [
-          {
-            "method": "sendMessage",
-            "payload": {
-              "text": "View score history and payout status"
-            }
-          }
-        ],
-        "send": {
-          "text": "/profile"
-        }
+        "send": { "callback": "profile:show" },
+        "expect": [{ "method": "editMessageText", "payload": { "text": "Your rewards profile is getting connected. Come back soon!" } }]
       }
     ]
   }

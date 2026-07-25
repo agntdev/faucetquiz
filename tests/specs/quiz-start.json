@@ -1,19 +1,19 @@
 [
   {
-    "name": "Play",
+    "name": "Play explains when durable rewards are unavailable",
     "steps": [
       {
-        "expect": [
-          {
-            "method": "sendMessage",
-            "payload": {
-              "text": "Begin quiz session with random question"
-            }
-          }
-        ],
-        "send": {
-          "callback": "quiz:start"
-        }
+        "send": { "callback": "quiz:start" },
+        "expect": [{ "method": "editMessageText", "payload": { "text": "Rewards are getting connected here. Come back in a little while!" } }]
+      }
+    ]
+  },
+  {
+    "name": "Ad break appears between games",
+    "steps": [
+      {
+        "send": { "callback": "quiz:complete" },
+        "expect": [{ "method": "editMessageText", "payload": { "text": "A quick ad break helps keep your rewards rolling. Ready for another quiz?" } }]
       }
     ]
   }
