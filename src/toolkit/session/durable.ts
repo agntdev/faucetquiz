@@ -14,6 +14,7 @@
  */
 
 import type { StorageAdapter } from "grammy";
+import type { D1Database } from "../persistent.js";
 
 // Minimal shapes so this file type-checks without pulling @cloudflare/workers-types
 // into the Node build. The real bindings are provided by the Workers runtime.
@@ -39,7 +40,7 @@ export interface WorkerEnv {
   BOT_TOKEN: string;
   WEBHOOK_SECRET?: string;
   CHAT_DO: DONamespace;
-  DB?: unknown; // D1 binding (app data); see AGENTS.md
+  DB?: D1Database; // D1 binding (app data); see AGENTS.md
   BOT_TELEMETRY_URL?: string;
   BOT_TELEMETRY_SECRET?: string;
   BOT_TELEMETRY_SALT?: string;

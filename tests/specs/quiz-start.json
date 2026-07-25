@@ -13,7 +13,7 @@
     "steps": [
       {
         "send": { "callback": "quiz:complete" },
-        "expect": [{ "method": "editMessageText", "payload": { "text": "A quick ad break helps keep your rewards rolling. Ready for another quiz?" } }]
+        "expect": [{ "method": "editMessageText", "payload": { "text": "A quick AdsGram break helps keep your rewards rolling. It’s counted securely by AdsGram’s server callback — then you can keep playing!" } }]
       }
     ]
   }

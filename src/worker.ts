@@ -14,6 +14,7 @@ import { webhookCallback, Composer, type Bot } from "grammy";
 import { buildBot, type Ctx } from "./bot.js";
 import { handlers } from "./handlers.generated.js";
 import { createDurableSessionStorage, type WorkerEnv } from "./toolkit/session/durable.js";
+import { handleAdsgramCallback } from "./adsgram-callback.js";
 
 export { ChatDO } from "./toolkit/session/durable.js";
 
@@ -77,6 +78,10 @@ export default {
       }
       const bot = await getBot(env);
       return webhookCallback(bot, "cloudflare-mod")(request);
+    }
+
+    if (url.pathname === "/adsgram/callback") {
+      return handleAdsgramCallback(request, env);
     }
 
     return new Response("not found", { status: 404 });

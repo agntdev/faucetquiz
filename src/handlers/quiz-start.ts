@@ -85,14 +85,7 @@ composer.callbackQuery(/^quiz:answer:\d+$/, async (ctx) => {
 
 composer.callbackQuery("quiz:complete", async (ctx) => {
   await ctx.answerCallbackQuery();
-  try { await storeFor(ctx)?.adImpression("adsgram-between-games", now()); } catch { /* ads are best-effort */ }
-  await ctx.editMessageText("A quick ad break helps keep your rewards rolling. Ready for another quiz?", { reply_markup: inlineKeyboard([[inlineButton("❤️ Support QuizPay", "ad:clicked")], [inlineButton("🎮 Continue", "quiz:start")]]) });
-});
-
-composer.callbackQuery("ad:clicked", async (ctx) => {
-  await ctx.answerCallbackQuery({ text: "Thanks for supporting QuizPay!" });
-  try { await storeFor(ctx)?.adClick("adsgram-between-games", now()); } catch { /* analytics is best-effort */ }
-  await ctx.editMessageText("Thanks for the boost! Your next quiz is ready whenever you are.", { reply_markup: inlineKeyboard([[inlineButton("🎮 Continue", "quiz:start")]]) });
+  await ctx.editMessageText("A quick AdsGram break helps keep your rewards rolling. It’s counted securely by AdsGram’s server callback — then you can keep playing!", { reply_markup: inlineKeyboard([[inlineButton("🎮 Continue", "quiz:start")]]) });
 });
 
 export default composer;

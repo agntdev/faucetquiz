@@ -36,6 +36,14 @@ export interface Payout {
   timestamp: number;
 }
 
+export interface AdMetrics {
+  adId: string;
+  impressions: number;
+  clicks: number;
+  revenueSats: number;
+  timestamp: number;
+}
+
 export class QuizPayStore {
   constructor(private readonly db: D1Database) {}
 
@@ -43,7 +51,11 @@ export class QuizPayStore {
     await this.db.prepare("CREATE TABLE IF NOT EXISTS quizpay_users (telegram_id INTEGER PRIMARY KEY, display_name TEXT NOT NULL, score INTEGER NOT NULL DEFAULT 0, wallet_address TEXT, plays_day TEXT NOT NULL, plays_today INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL)").run();
     await this.db.prepare("CREATE TABLE IF NOT EXISTS quizpay_payouts (id TEXT PRIMARY KEY, telegram_id INTEGER NOT NULL, amount INTEGER NOT NULL, status TEXT NOT NULL, tx_id TEXT, timestamp INTEGER NOT NULL)").run();
     await this.db.prepare("CREATE INDEX IF NOT EXISTS quizpay_payouts_user_time ON quizpay_payouts (telegram_id, timestamp DESC)").run();
-    await this.db.prepare("CREATE TABLE IF NOT EXISTS quizpay_ads (ad_id TEXT PRIMARY KEY, impressions INTEGER NOT NULL DEFAULT 0, clicks INTEGER NOT NULL DEFAULT 0, timestamp INTEGER NOT NULL)").run();
+    await this.db.prepare("CREATE TABLE IF NOT EXISTS quizpay_ads (ad_id TEXT PRIMARY KEY, impressions INTEGER NOT NULL DEFAULT 0, clicks INTEGER NOT NULL DEFAULT 0, revenue_sats INTEGER NOT NULL DEFAULT 0, timestamp INTEGER NOT NULL)").run();
+    // Existing deployments may have been created before revenue accounting was
+    // added. D1 accepts this migration once; a duplicate-column error is safe.
+    try { await this.db.prepare("ALTER TABLE quizpay_ads ADD COLUMN revenue_sats INTEGER NOT NULL DEFAULT 0").run(); } catch { /* already migrated */ }
+    await this.db.prepare("CREATE TABLE IF NOT EXISTS quizpay_ad_events (event_id TEXT PRIMARY KEY, ad_id TEXT NOT NULL, event_type TEXT NOT NULL, timestamp INTEGER NOT NULL)").run();
   }
 
   async user(id: number, name: string, day: string, timestamp: number): Promise<QuizUser> {
@@ -86,14 +98,22 @@ export class QuizPayStore {
     await this.db.prepare("INSERT INTO quizpay_payouts (id, telegram_id, amount, status, tx_id, timestamp) VALUES (?, ?, ?, 'pending', NULL, ?)").bind(id, telegramId, amount, timestamp).run();
   }
 
-  async adImpression(adId: string, timestamp: number): Promise<void> {
+  async recordAdsgramEvent(eventId: string, adId: string, eventType: "impression" | "click" | "payout", revenueSats: number, timestamp: number): Promise<"recorded" | "replay"> {
     await this.ready();
-    await this.db.prepare("INSERT INTO quizpay_ads (ad_id, impressions, clicks, timestamp) VALUES (?, 1, 0, ?) ON CONFLICT(ad_id) DO UPDATE SET impressions = impressions + 1, timestamp = excluded.timestamp").bind(adId, timestamp).run();
+    // INSERT OR IGNORE makes delivery retries safe even when two callback
+    // requests race each other; D1 reports the affected-row count in meta.
+    const inserted = await this.db.prepare("INSERT OR IGNORE INTO quizpay_ad_events (event_id, ad_id, event_type, timestamp) VALUES (?, ?, ?, ?)").bind(eventId, adId, eventType, timestamp).run() as { meta?: { changes?: number } };
+    if (inserted.meta?.changes !== 1) return "replay";
+    const impressions = eventType === "impression" ? 1 : 0;
+    const clicks = eventType === "click" ? 1 : 0;
+    const revenue = eventType === "payout" ? revenueSats : 0;
+    await this.db.prepare("INSERT INTO quizpay_ads (ad_id, impressions, clicks, revenue_sats, timestamp) VALUES (?, ?, ?, ?, ?) ON CONFLICT(ad_id) DO UPDATE SET impressions = impressions + excluded.impressions, clicks = clicks + excluded.clicks, revenue_sats = revenue_sats + excluded.revenue_sats, timestamp = excluded.timestamp").bind(adId, impressions, clicks, revenue, timestamp).run();
+    return "recorded";
   }
 
-  async adClick(adId: string, timestamp: number): Promise<void> {
+  async adMetrics(adId: string): Promise<AdMetrics | null> {
     await this.ready();
-    await this.db.prepare("INSERT INTO quizpay_ads (ad_id, impressions, clicks, timestamp) VALUES (?, 0, 1, ?) ON CONFLICT(ad_id) DO UPDATE SET clicks = clicks + 1, timestamp = excluded.timestamp").bind(adId, timestamp).run();
+    return this.db.prepare("SELECT ad_id AS adId, impressions, clicks, revenue_sats AS revenueSats, timestamp FROM quizpay_ads WHERE ad_id = ?").bind(adId).first<AdMetrics>();
   }
 }
 
